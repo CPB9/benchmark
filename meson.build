@@ -3,14 +3,12 @@ project('benchmark', 'cpp', default_options : ['cpp_std=c++11'], version : '1.4.
 
 cc = meson.get_compiler('cpp')
 
-private_deps = []
-
-private_deps += dependency('threads')
+public_deps = [dependency('threads', required : true)]
 
 if host_machine.system() == 'linux'
-  private_deps += cc.find_library('rt', required : true)
+  public_deps += cc.find_library('rt', required : true)
 elif host_machine.system() == 'windows'
-  private_deps += cc.find_library('Shlwapi', required : true)
+  public_deps += cc.find_library('Shlwapi', required : true)
 endif
 
 src = [
@@ -40,7 +38,7 @@ private_inc = include_directories('include', 'src')
 benchmark_lib = static_library('libbenchmark',
   name_prefix : '',
   sources : src,
-  dependencies : private_deps,
+  dependencies : public_deps,
   include_directories : private_inc,
   cpp_args : private_defs,
 )
@@ -48,7 +46,7 @@ benchmark_lib = static_library('libbenchmark',
 benchmark_main_lib = static_library('libbenchmark_main',
   name_prefix : '',
   sources : 'src/benchmark_main.cc',
-  dependencies : private_deps,
+  dependencies : public_deps,
   include_directories : private_inc,
   cpp_args : private_defs,
   link_with : benchmark_lib,
@@ -59,9 +57,11 @@ public_inc = include_directories('include', is_system : true)
 benchmark_dep = declare_dependency(
   link_with : benchmark_lib,
   include_directories : public_inc,
+  dependencies : public_deps,
 )
 
 benchmark_main_dep = declare_dependency(
   link_with : benchmark_main_lib,
   include_directories : public_inc,
+  dependencies : public_deps,
 )
